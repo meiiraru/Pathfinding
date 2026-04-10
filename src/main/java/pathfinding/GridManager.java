@@ -8,7 +8,6 @@ import cinnamon.input.InputManager;
 import cinnamon.model.GeometryHelper;
 import cinnamon.render.MatrixStack;
 import cinnamon.render.batch.VertexConsumer;
-import cinnamon.settings.Settings;
 import cinnamon.text.Text;
 import cinnamon.utils.Alignment;
 import cinnamon.utils.Resource;
@@ -22,9 +21,8 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class GridManager extends Screen {
 
+    public static int TILE_SIZE = 20;
     public static final int
-            TILE_SIZE = 20,
-
             COLOR_WALKABLE      = 0xFFE8E8E8,
             COLOR_WALKABLE_LINE = 0xFFF8F8F8,
             COLOR_WALL          = 0xFF555555,
@@ -98,26 +96,12 @@ public class GridManager extends Screen {
         zoom.setAlignment(Alignment.BOTTOM_RIGHT);
         addWidget(zoom);
 
-        Button zoomOut = new Button(0, 0, h, h, Text.of("-"), butt -> {
-            float old = client.window.guiScale;
-            float newer = Math.max(old - 1, 1);
-            if (old != newer) {
-                Settings.guiScale.set(newer);
-                client.windowResize(client.window.width, client.window.height);
-            }
-        });
+        Button zoomOut = new Button(0, 0, h, h, Text.of("-"), butt -> TILE_SIZE = Math.round(Math.max(TILE_SIZE * 0.9f, 5f)));
         zoomOut.setStyle(GUI_STYLE);
         zoomOut.setTooltip(Text.of("Zoom out"));
         zoom.addWidget(zoomOut);
 
-        Button zoomIn = new Button(0, 0, h, h, Text.of("+"), butt -> {
-            float old = client.window.guiScale;
-            float newer = Math.min(old + 1, client.window.maxGuiScale);
-            if (old != newer) {
-                Settings.guiScale.set(newer);
-                client.windowResize(client.window.width, client.window.height);
-            }
-        });
+        Button zoomIn = new Button(0, 0, h, h, Text.of("+"), butt -> TILE_SIZE = Math.round(Math.min(TILE_SIZE * 1.1f, 100f)));
         zoomIn.setStyle(GUI_STYLE);
         zoomIn.setTooltip(Text.of("Zoom in"));
         zoom.addWidget(zoomIn);
@@ -127,6 +111,7 @@ public class GridManager extends Screen {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         draw(matrices);
         super.render(matrices, mouseX, mouseY, delta);
+        Text.of("\u2190").render(VertexConsumer.MAIN, matrices, width - 12 + 2, 12 + 14 * (selectedAlgorithm.ordinal() + 1.5f), Alignment.CENTER_LEFT);
     }
 
     @Override
