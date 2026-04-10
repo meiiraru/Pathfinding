@@ -1,0 +1,9 @@
+{
+  "parent": "data/gui_styles/hud.json",
+  "colors": {
+    "accent_color": "FFFFFFFF"
+  },
+  "resources": {
+    "slider_tex":  "pathfinding:slider.png"
+  }
+}
