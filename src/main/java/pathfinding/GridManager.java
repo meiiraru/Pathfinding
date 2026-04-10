@@ -40,7 +40,7 @@ public class GridManager extends Screen {
 
     private final Vector2i
             startPos = new Vector2i(2, 2),
-            goalPos = new Vector2i(15, 10);
+            goalPos = new Vector2i(14, 9);
 
     private final GridGraph graph = new GridGraph(12, 17);
     private final List<Vector2i> path = new ArrayList<>();
@@ -48,7 +48,7 @@ public class GridManager extends Screen {
     private AlgoType selectedAlgorithm = AlgoType.BFS;
     private SearchAlgorithm currentSearch;
     private boolean isDrawingWalls = true;
-    public static int delay = 1;
+    public static int delay = 10;
 
     public GridManager() {}
 
@@ -83,22 +83,15 @@ public class GridManager extends Screen {
         aStar.setStyle(GUI_STYLE);
         grid.addWidget(aStar);
 
-        //spacer
-        Button spacer = new Button(0, 0, w, h, Text.of(""), null);
-        spacer.setStyle(GUI_STYLE);
-        spacer.setInvisible(true);
-        spacer.setActive(false);
-        grid.addWidget(spacer);
-
         //delay slider
-        Slider slider = new Slider(0, 0, w);
+        Slider slider = new Slider(grid.getX() - grid.getWidth(), grid.getY() + grid.getHeight() + 16, w);
         slider.setMax(4);
         slider.setStepCount(5);
-        slider.setValue(delay);
+        slider.setValue((int) Math.log10(delay) + 1);
         slider.setChangeListener((f, i) -> delay = (int) Math.pow(10, (i - 1)));
         slider.setTooltipFunction((f, i) -> Text.of("Delay between steps: ").append(Text.of((int) Math.pow(10, (i - 1)) + "ms")));
         slider.setStyle(GUI_STYLE);
-        grid.addWidget(slider);
+        addWidget(slider);
 
         //zoom buttons
         ContainerGrid zoom = new ContainerGrid(width - 12, height - 12, 4, 2);

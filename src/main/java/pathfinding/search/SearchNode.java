@@ -6,7 +6,7 @@ public class SearchNode {
 
     private final Vector2i cell;
     private final SearchNode parent;
-    float gCost, hCost;
+    private float gCost, hCost;
 
     public SearchNode(Vector2i cell) {
         this(cell, null, 0f);
@@ -38,7 +38,15 @@ public class SearchNode {
         return gCost;
     }
 
+    public void setgCost(float gCost) {
+        this.gCost = gCost;
+    }
+
     public float gethCost() {
         return hCost;
+    }
+
+    public void sethCost(float hCost) {
+        this.hCost = hCost;
     }
 }

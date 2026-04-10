@@ -38,6 +38,20 @@ public class PriorityQueue<T> {
     }
 
     public T getItem() {
-        return isEmpty() ? null : elements.getLast().first();
+        return isEmpty() ? null : elements.removeLast().first();
+    }
+
+    public boolean remove(T item) {
+        for (int i = 0; i < elements.size(); i++) {
+            if (elements.get(i).first().equals(item)) {
+                elements.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void clear() {
+        elements.clear();
     }
 }
