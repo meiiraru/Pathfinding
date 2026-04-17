@@ -3,15 +3,20 @@ package pathfinding;
 import cinnamon.gui.Screen;
 import cinnamon.gui.widgets.ContainerGrid;
 import cinnamon.gui.widgets.types.Button;
+import cinnamon.gui.widgets.types.Label;
 import cinnamon.gui.widgets.types.Slider;
 import cinnamon.input.InputManager;
 import cinnamon.model.GeometryHelper;
 import cinnamon.render.MatrixStack;
 import cinnamon.render.batch.VertexConsumer;
+import cinnamon.text.Style;
 import cinnamon.text.Text;
 import cinnamon.utils.Alignment;
+import cinnamon.utils.ColorUtils;
 import cinnamon.utils.Resource;
+import cinnamon.utils.TextUtils;
 import org.joml.Vector2i;
+import org.joml.Vector3f;
 import pathfinding.search.*;
 
 import java.util.ArrayList;
@@ -42,6 +47,8 @@ public class GridManager extends Screen {
 
     private final GridGraph graph = new GridGraph(12, 17);
     private final List<Vector2i> path = new ArrayList<>();
+    private final Label visitedLabel = new Label(0, 0, Text.empty());
+    private final Button simulateButton = new Button(0, 0, 0, 0, Text.of("Simulate!"), butt -> updatePath());
 
     private AlgoType selectedAlgorithm = AlgoType.BFS;
     private SearchAlgorithm currentSearch;
@@ -61,9 +68,9 @@ public class GridManager extends Screen {
         grid.setAlignment(Alignment.TOP_RIGHT);
         addWidget(grid);
 
-        Button simulate = new Button(0, 0, w, h, Text.of("Simulate!"), butt -> updatePath());
-        simulate.setStyle(GUI_STYLE);
-        grid.addWidget(simulate);
+        simulateButton.setDimensions(w, h);
+        simulateButton.setStyle(GUI_STYLE);
+        grid.addWidget(simulateButton);
 
         Button bfs = new Button(0, 0, w, h, Text.of("BFS"), butt -> selectedAlgorithm = AlgoType.BFS);
         bfs.setStyle(GUI_STYLE);
@@ -91,6 +98,28 @@ public class GridManager extends Screen {
         slider.setStyle(GUI_STYLE);
         addWidget(slider);
 
+        //keybinds label
+        Text keybindsText = Text.of("""
+                Keybinds
+
+                &nLeft Click&r: Set goal
+                &nShift + Left Click&r: Set start
+                &nRight Click + Drag&r: Draw/erase walls
+                &nC&r: Clear all walls"""
+        );
+
+        Label keybinds = new Label(grid.getX(), slider.getY() + slider.getHeight() + 16, Text.of("\u2328"));
+        keybinds.setAlignment(Alignment.TOP_RIGHT);
+        keybinds.setStyle(GUI_STYLE);
+        keybinds.setTooltip(TextUtils.parseColorFormatting(keybindsText));
+        addWidget(keybinds);
+
+        //count label
+        visitedLabel.setPos(width - 12, height - 12 - h - 16);
+        visitedLabel.setAlignment(Alignment.BOTTOM_RIGHT);
+        visitedLabel.setStyle(GUI_STYLE);
+        addWidget(visitedLabel);
+
         //zoom buttons
         ContainerGrid zoom = new ContainerGrid(width - 12, height - 12, 4, 2);
         zoom.setAlignment(Alignment.BOTTOM_RIGHT);
@@ -109,9 +138,26 @@ public class GridManager extends Screen {
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        //draw board
         draw(matrices);
+
+        //draw widgets
         super.render(matrices, mouseX, mouseY, delta);
+
+        //selected indicator
         Text.of("\u2190").render(VertexConsumer.MAIN, matrices, width - 12 + 2, 12 + 14 * (selectedAlgorithm.ordinal() + 1.5f), Alignment.CENTER_LEFT);
+
+        //update counts in render :(
+        int processedCount = currentSearch != null ? currentSearch.getClosedSet().size() : 0;
+        int visitedCount = currentSearch != null ? currentSearch.getVisited().size() : 0;
+        visitedLabel.setText(
+                Text.of("Processed: ").append(processedCount)
+                        .append("\nVisited: ").append(visitedCount)
+                        .withStyle(Style.EMPTY.outlined(true))
+        );
+
+        //animate simulate button
+        simulateButton.getMessage().withStyle(Style.EMPTY.color(ColorUtils.rgbToInt(ColorUtils.hsvToRGB(new Vector3f((client.ticks + delta) * 0.005f, 0.7f, 1f))) + (0xFF << 24)));
     }
 
     @Override
@@ -242,7 +288,11 @@ public class GridManager extends Screen {
             //left button set the goal position
             case GLFW_MOUSE_BUTTON_LEFT -> {
                 if (!gridPos.equals(startPos) && !gridPos.equals(goalPos) && !graph.getWalls().getOrDefault(gridPos, false)) {
-                    goalPos.set(gridPos);
+                    if (mods == GLFW_MOD_SHIFT) {
+                        startPos.set(gridPos);
+                    } else {
+                        goalPos.set(gridPos);
+                    }
                     mapChanged = true;
                 }
             }
